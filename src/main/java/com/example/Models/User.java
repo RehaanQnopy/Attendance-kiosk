@@ -9,7 +9,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class User {
 
     @Id
-    private String id; //Stored as ObjectId in MongoDB, handled as String in Java!
+    //Stored as ObjectId in MongoDB, handled as String in Java!
+    //Springboot automatically converts the ObjectID received from mongoDb into the String 
+    private String id; 
     private String name;
     @Indexed (unique = true)
     private String email;                       // stored in lowercase
@@ -18,15 +20,19 @@ public class User {
 
     public User() { }
 
-    //The below methods are used for filling the 
+    //The below methods are used for filling the details fro the foundUser in the AuthController file
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    //The below methods are used for filling the details fro the foundUser in the AuthController file
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    //The below methods are used for filling the details fro the foundUser in the AuthController file
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+    //The below methods are used for filling the details fro the foundUser in the AuthController file
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
     public ObjectId getManagerId() { return managerId; }
     public void setManagerId(ObjectId managerId) { this.managerId = managerId; }
 }
