@@ -1,0 +1,16 @@
+package com.example.attendanceMarker.repository;
+
+import java.util.Optional;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
+
+import com.example.attendanceMarker.model.User;
+
+@Repository 
+public interface UserRepository extends MongoRepository<User, String>
+{
+    //We add our own custom method, apart from what we get from the MongoRepository
+    Optional<User> findByEmail(String email);
+
+}
