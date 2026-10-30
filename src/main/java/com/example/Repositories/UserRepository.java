@@ -1,13 +1,14 @@
-package com.example.demo;
+package com.example.Repositories;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.Optional;
 
-@SpringBootApplication
-public class DemoApplication {
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
-	}
+import com.example.Models.User;
 
+public interface UserRepository extends MongoRepository<User, String> {
+	//This is the manual method we have created to search the user via email, 
+	//It converts back into the query to find by column email, this is used in the 
+	//AuthService file.
+    Optional<User> findByEmail(String email);
 }

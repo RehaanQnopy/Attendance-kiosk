@@ -17,14 +17,14 @@ import com.example.Services.AuthService;
 import jakarta.servlet.http.HttpSession;
 
 @RestController 
-@RequestMapping ("api/auth")
+@RequestMapping ("/api/auth")
 public class AuthController {
 
     @Autowired 
     private AuthService authService;
     private HttpSession session;
     
-    @PostMapping("/users")
+    @PostMapping("/user")
     public ResponseEntity<SessionUserResponse> isValidUser(@RequestBody String email)
     {
         Optional<User> foundUser = this.authService.isUserExisting(email);
@@ -34,6 +34,7 @@ public class AuthController {
             //therefore we use the .get() to unwrap it and get the values out of it
             User curr_user = foundUser.get();
             SessionUserResponse response = new SessionUserResponse(curr_user.getId().toString(), curr_user.getName(), curr_user.getRole());
+            //Here we are making the session also for the verified user
             session.setAttribute("user_id", curr_user.getId());
             return ResponseEntity.status(HttpStatus.FOUND).body(response);
         }

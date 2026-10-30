@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document (collection = "attendance_months")
+//This is for implementing Indexing and for fast lookup
 @CompoundIndex (def = "{'userId': 1, 'month': 1}", unique = true)
 public class AttendanceMonth {
 

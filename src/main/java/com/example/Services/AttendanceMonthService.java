@@ -45,7 +45,7 @@ public class AttendanceMonthService {
         //for the current month
         else 
         {
-            ExistingMonth= new AttendanceMonth();
+            ExistingMonth = new AttendanceMonth();
             ExistingMonth.setUserId(userId);
             ExistingMonth.setMonth(monthKey);
             ExistingMonth.setDays(new HashMap<>());
@@ -66,7 +66,7 @@ public class AttendanceMonthService {
             return Optional.of(attendanceRepo.save(ExistingMonth));
             
     }
-
+//--------------------------------------------------------------------------------------------------------------------------------------------//
     public Optional<AttendanceMonth> onCLickLogout(String userId)
     {
         Instant now = Instant.now();
@@ -76,8 +76,8 @@ public class AttendanceMonthService {
         String dayKey=String.valueOf(now.atZone(IST).getDayOfMonth());
 
         AttendanceMonth ExistingMonth;
-        Optional<AttendanceMonth> isLoginTherForThisDayAndMonth = attendanceRepo.findByUserIdAndMonth(userId, monthKey);
-        if(isLoginTherForThisDayAndMonth.isEmpty())
+        Optional<AttendanceMonth> isLoginThereForThisDayAndMonth = attendanceRepo.findByUserIdAndMonth(userId, monthKey);
+        if(isLoginThereForThisDayAndMonth.isEmpty())
         {
             //This check ensures that, if no login happened for this particular day, then an
             //empty Optional is sent back
@@ -86,7 +86,7 @@ public class AttendanceMonthService {
         else 
         {
             //unwraps the AtttendanceMonth object from the Optional cover
-            ExistingMonth = isLoginTherForThisDayAndMonth.get();
+            ExistingMonth = isLoginThereForThisDayAndMonth.get();
             //Here we extract the DayEntry object of today as onCLickLogin() would have created the 
             //todays object already
             DayEntry today = ExistingMonth.getDays().get(dayKey);
@@ -115,8 +115,30 @@ public class AttendanceMonthService {
             {
                 summary.setShortDays(summary.getShortDays()+1);
             }
-            summary.setTotalMin(summary.getTotalMin()+1);
+            summary.setTotalMin(summary.getTotalMin()+minute);
             return Optional.of(attendanceRepo.save(ExistingMonth));
+        }
+    }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------//
+
+//This method is for returning the particular AttendanceMonth data for a Particular userId   
+public Optional<AttendanceMonth> getMonth(String userId, String monthKey)
+    {
+        Optional<AttendanceMonth> reqMonth = this.attendanceRepo.findByUserIdAndMonth(userId,monthKey);
+        if(reqMonth.isPresent())
+        {
+            AttendanceMonth resMonth= reqMonth.get();
+            return Optional.of(resMonth);
+        }
+        else
+        {
+          AttendanceMonth month = new AttendanceMonth();
+            month.setUserId(userId);
+            month.setMonth(monthKey);
+            month.setDays(new HashMap<>());
+            month.setSummary(new MonthSummary());
+            return Optional.of(month);
         }
     }
     

@@ -1,5 +1,7 @@
 package com.example.Models;
 
+import java.util.List;
+
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -15,8 +17,12 @@ public class User {
     private String name;
     @Indexed (unique = true)
     private String email;                       // stored in lowercase
-    private String role;                        // EMPLOYEE | MANAGER
-    private ObjectId managerId;                 // reference to another user
+    private List<String> role;                  // EMPLOYEE | MANAGER    
+/* Keeping the mangerId to the type of OBjectID, itself instead of String cause
+    If you set managerId to a String, 
+    it will be written to MongoDB as a string literal ("6722ab..."), 
+    breaking your $lookup aggregations.
+*/  private ObjectId managerId;                 // reference to another user
 
     public User() { }
 
@@ -30,8 +36,8 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     //The below methods are used for filling the details fro the foundUser in the AuthController file
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public List<String> getRole() { return role; }
+    public void setRole(List<String> role) { this.role = role; }
 
     public ObjectId getManagerId() { return managerId; }
     public void setManagerId(ObjectId managerId) { this.managerId = managerId; }
