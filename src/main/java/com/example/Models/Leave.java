@@ -46,7 +46,7 @@ public class Leave {
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public ObjectId geEmployeeId() { return employeeId; }
+    public ObjectId getEmployeeId() { return employeeId; }
     public void setEmployeeId(ObjectId userId) { this.employeeId = userId; }
 
     public ObjectId getManagerId() { return managerId; }

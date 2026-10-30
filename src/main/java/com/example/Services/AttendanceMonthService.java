@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.example.Models.AttendanceMonth;
 import com.example.Models.DayEntry;
@@ -15,6 +16,7 @@ import com.example.Models.DayType;
 import com.example.Models.MonthSummary;
 import com.example.Repositories.AttendanceMonthRepository;
 
+@Service 
 public class AttendanceMonthService {
 
     //Sets the time Zone to indian time zone
