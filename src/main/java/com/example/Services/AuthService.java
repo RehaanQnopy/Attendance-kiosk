@@ -21,7 +21,7 @@ public class AuthService {
         //Below cleanign the email, ensures the consistency between what user fills 
         //and what is filled in the backend
         String cleanedEmail= email.trim().toLowerCase();
-        return this.userRepo.findByEmail(cleanedEmail);
+        return this.userRepo.findByEmail(cleanedEmail);    
    }
     
 }

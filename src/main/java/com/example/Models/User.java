@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "users")
 public class User {
-
     @Id
     //Stored as ObjectId in MongoDB, handled as String in Java!
     //Springboot automatically converts the ObjectID received from mongoDb into the String 

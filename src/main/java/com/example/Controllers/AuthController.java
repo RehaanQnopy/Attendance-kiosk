@@ -1,5 +1,6 @@
 package com.example.Controllers;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,16 +18,19 @@ import com.example.Services.AuthService;
 import jakarta.servlet.http.HttpSession;
 
 @RestController 
-@RequestMapping ("/api/auth")
+@RequestMapping("auth")
 public class AuthController {
 
     @Autowired 
     private AuthService authService;
-    private HttpSession session;
-    
+
+    //Fix 1: HttpSession is NOT a class field anymore (that was always null, causing the NullPointerException).
+    //Spring gives us the real session when we ask for it as a method parameter.
+    //Fix 2: Angular sends { "email": "..." }, so we read it as a Map and pick the "email" key out of it.
     @PostMapping("/user")
-    public ResponseEntity<SessionUserResponse> isValidUser(@RequestBody String email)
+    public ResponseEntity<SessionUserResponse> isValidUser(@RequestBody Map<String, String> body, HttpSession session)
     {
+        String email = body.get("email");
         Optional<User> foundUser = this.authService.isUserExisting(email);
         if(foundUser.isPresent())
         {
@@ -35,8 +39,9 @@ public class AuthController {
             User curr_user = foundUser.get();
             SessionUserResponse response = new SessionUserResponse(curr_user.getId().toString(), curr_user.getName(), curr_user.getRole());
             //Here we are making the session also for the verified user
-            session.setAttribute("user_id", curr_user.getId());
-            return ResponseEntity.status(HttpStatus.FOUND).body(response);
+            session.setAttribute("userId", curr_user.getId());
+            //Fix 3: 200 OK for a successful login (FOUND is a 302 redirect status)
+            return ResponseEntity.ok(response);
         }
         else return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }

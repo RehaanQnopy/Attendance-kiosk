@@ -14,7 +14,7 @@ import com.example.Models.AttendanceMonth;
 import com.example.Services.AttendanceMonthService;
 
 @RestController 
-@RequestMapping ("/api/attendance")
+@RequestMapping ("attendance")
 public class AttendanceMarkerController {
 
     @Autowired 
