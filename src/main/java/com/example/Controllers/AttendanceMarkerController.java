@@ -41,7 +41,7 @@ public class AttendanceMarkerController {
         .orElseGet(()-> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
-    @GetMapping ("/month/{monthKey}")
+    @GetMapping("month/{monthKey}")
     public ResponseEntity<AttendanceMonth> calendarPreview(@SessionAttribute("userId") String userId, 
                 @PathVariable String monthKey)
     {
