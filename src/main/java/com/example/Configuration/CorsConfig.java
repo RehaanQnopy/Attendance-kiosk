@@ -1,17 +1,18 @@
 package com.example.Configuration;
 
-import java.beans.BeanProperty;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.beans.factory.annotation.Value;
 
 
 @Configuration 
@@ -44,7 +45,20 @@ public class CorsConfig {
             //This means fro authorization everybody is allowed who hit the path allwoed in requestMatchers()
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/user", "/auth/login", "/error").permitAll() 
-                .anyRequest().authenticated());
+                .anyRequest().authenticated())
+                //logout is the method that enables the logout process, it takes lambda function as input
+                //Very important: HOW TO READ THE LAMBDA FUNCTION
+                    //Here, read it as take[input] ->(and do this with the paramtere) 
+                    //logout is the configuration object we get for using .logout()
+            .logout(logout -> logout
+                .logoutUrl("/auth/logout") //Sets the url that triggers the logout process
+                .invalidateHttpSession(true) //This is used to destory the HttpSession of the user at the Backend side
+                .clearAuthentication(true) //This ensures that the current user is not considered as valid user
+                .deleteCookies("JSESSIONID") //This ensures that the session cookie is considered to be expired one 
+                //This is important, after the succesfull logout, by default SpringSecurity re-directs, but here we are ensuring that a 
+                // success message is sent back to the frontend
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK)) 
+            );
 
         return http.build();
     }
