@@ -20,7 +20,7 @@ public class AttendanceMarkerController {
     @Autowired 
     private AttendanceMonthService attendanceMonthService;
 
-    @PostMapping("login")
+    @PostMapping("clock-in")
     /* 
         The @SessionAttribute annotation is a Spring Boot directive used inside your 
         RestController methods to automatically fetch data that was previously stored in the user's 
@@ -33,7 +33,7 @@ public class AttendanceMarkerController {
         .orElseGet(()-> ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
 
-    @PostMapping("logout")
+    @PostMapping("clock-out")
     public ResponseEntity<AttendanceMonth> clockOut(@SessionAttribute("userId" ) String userId)
     {
         return attendanceMonthService.onCLickLogout(userId)

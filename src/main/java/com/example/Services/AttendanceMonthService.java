@@ -142,6 +142,5 @@ public Optional<AttendanceMonth> getMonth(String userId, String monthKey)
             month.setSummary(new MonthSummary());
             return Optional.of(month);
         }
-    }
-    
+    }    
 }
