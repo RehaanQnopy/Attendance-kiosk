@@ -1,11 +1,15 @@
 package com.example.Services;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,12 +19,15 @@ import com.example.Models.DayEntry;
 import com.example.Models.DayType;
 import com.example.Models.MonthSummary;
 import com.example.Repositories.AttendanceMonthRepository;
+import com.mongodb.DuplicateKeyException;
 
 @Service 
 public class AttendanceMonthService {
 
     //Sets the time Zone to indian time zone
     private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
+    //Here 
+    private static final Set<DayOfWeek> WEEKENDS = EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY); 
     
     @Autowired 
     private AttendanceMonthRepository attendanceRepo;
@@ -127,20 +134,39 @@ public class AttendanceMonthService {
 //This method is for returning the particular AttendanceMonth data for a Particular userId   
 public Optional<AttendanceMonth> getMonth(String userId, String monthKey)
     {
-        Optional<AttendanceMonth> reqMonth = this.attendanceRepo.findByUserIdAndMonth(userId,monthKey);
-        if(reqMonth.isPresent())
-        {
-            AttendanceMonth resMonth= reqMonth.get();
-            return Optional.of(resMonth);
-        }
-        else
-        {
-          AttendanceMonth month = new AttendanceMonth();
-            month.setUserId(userId);
-            month.setMonth(monthKey);
-            month.setDays(new HashMap<>());
-            month.setSummary(new MonthSummary());
-            return Optional.of(month);
-        }
+        YearMonth ym = YearMonth.parse(monthKey);
+        LocalDate today = LocalDate.now(IST);
+
+        AttendanceMonth doc = 
     }    
+
+    //---------------HELPER FUNCTIONS---------------------------//
+    private AttendanceMonth getOrSetMonth(String userId, String monthKey)
+    {
+        Optional<AttendanceMonth> exist = attendanceRepo.findByUserIdAndMonth(userId, monthKey);
+        if(exist.isPresent())
+        {
+            return exist.get();
+        }
+    
+            AttendanceMonth m = new AttendanceMonth();
+                m.setId(userId);
+                m.setMonth(monthKey);
+                m.setDays(new HashMap<>());
+                m.setSummary(new MonthSummary());
+            //Here we ensure that after the new block is created then we return back the new object created
+            try {
+                //if block is new like no prior block is there then we return the new one
+                return attendanceRepo.save(m);
+            }
+            //In catch block we catch the duplicate error like if accidenntally there exist more than one of the same object then 
+            catch (DuplicateKeyException e)
+            {
+                return attendanceRepo.findByUserIdAndMonth(userId, monthKey).orElseThrow();
+
+            }
+            
+     }
 }
+    
+
