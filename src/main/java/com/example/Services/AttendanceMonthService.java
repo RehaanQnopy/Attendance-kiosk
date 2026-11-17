@@ -6,15 +6,21 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
-import java.util.EnumSet;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import com.example.Models.AttendanceMonth;
+import com.example.Models.AttendanceRow;
 import com.example.Models.DayEntry;
 import com.example.Models.DayType;
 import com.example.Models.MonthSummary;
@@ -24,10 +30,19 @@ import com.mongodb.DuplicateKeyException;
 @Service 
 public class AttendanceMonthService {
 
+    /* 
+        If you declared private MongoTemplate mongoTemplate; without @Autowired or without including it in a constructor,
+        Java leaves it as null
+    */
+    @Autowired 
+    private final MongoTemplate mongoTemplate=null;
+
     //Sets the time Zone to indian time zone
     private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
-    //Here 
-    private static final Set<DayOfWeek> WEEKENDS = EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY); 
+
+    //Here We declare the weekends as Saturday and Sunday, so that we could use it 
+    // in the typeFor() method to set the type of the day
+    // private static final Set<DayOfWeek> WEEKENDS = EnumSet.of(DayOfWeek.SATURDAY, DayOfWeek.SUNDAY); 
     
     @Autowired 
     private AttendanceMonthRepository attendanceRepo;
@@ -61,7 +76,7 @@ public class AttendanceMonthService {
             ExistingMonth.setSummary(new MonthSummary());
            
         }
-                    //The below check ensures that the same user is not getting logged in twice in a day
+        //The below check ensures that the same user is not getting logged in twice in a day
             if(ExistingMonth.getDays().containsKey(dayKey))
             {
                 return Optional.empty();
@@ -130,15 +145,88 @@ public class AttendanceMonthService {
     }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------//
-
-//This method is for returning the particular AttendanceMonth data for a Particular userId   
 public Optional<AttendanceMonth> getMonth(String userId, String monthKey)
+{
+    Optional<AttendanceMonth> month = this.attendanceRepo.findByUserIdAndMonth(userId, monthKey);
+    if(month.isEmpty())
+    {
+        return Optional.empty();
+    }
+    AttendanceMonth existingMonth = month.get();
+    return Optional.of(existingMonth);
+} 
+//This method is for returning the particular AttendanceMonth data for a Particular userId   
+public List<AttendanceRow> particularMonthView(String userId, String monthKey)
     {
         YearMonth ym = YearMonth.parse(monthKey);
         LocalDate today = LocalDate.now(IST);
 
-        AttendanceMonth doc = 
-    }    
+        AttendanceMonth doc = getOrSetMonth(userId, monthKey);
+
+        //Very importat that the <> diamond operators are for type inference, 
+        //They can be left empty as they take shape of the type form the variable you are storing it 
+        // so that we don't have to write the type again and again
+        Map<String, DayEntry> days = doc.getDays()==null? new HashMap<String, DayEntry>() : new HashMap<>(doc.getDays());
+
+        //Learned new things:
+        //Criteria acts as where clause , so that we could get the target document from the DB, it will be passed into the new Query()
+        Criteria criteria = Criteria.where("userId").is(userId).and("month").is(monthKey);
+        
+        //Update is for setting the new values for the document that we are fetching from the DB
+        Update update = new Update();
+        //The below variable is for checking if any changes have been made to the document, 
+        // so that we could save it back to the DB
+        boolean dirty =false;
+
+        for(int day =1; day<=ym.lengthOfMonth(); day++)
+        {
+            //.atDay() usage here is:
+            // ym is a java.time.YearMonth (such as 2026-11) and day is an integer (such as 16), .atDay(16) combines 
+            // them into a full calendar date (2026-11-16).
+            LocalDate date = ym.atDay(day);  //2026-11-16
+
+            //String.valueOf(), because there are no methods for primitive(int) value and .valueOf
+            String dayKey = String.valueOf(day); //16
+
+            //The below conditions are ensuring that, if there is dayEntry for this particular 
+            // day or the day is not before today's date then continue
+            if(days.containsKey(dayKey) || !date.isBefore(today)) continue;
+
+            //We create a new DayEntry object for the days where user has no entry, and set the type of the day 
+            // as per the typeFor() method
+            DayEntry emptyEntry = DayEntry.noUserEntry(typeFor(date, today));
+            days.put(dayKey, emptyEntry);
+            // We store the new DayEntry object in the update object, so that we could save it back to the DB
+            update.set("days."+dayKey, emptyEntry); //days.16 = emptyEntry
+            //Dirty is set to true even fro next iteration cause here the backend call is not being fro every loop only
+            //the update object is being set, so that we could save it back to the DB after the loop ends
+            dirty =true;
+        }
+        if(dirty)
+                {
+                    mongoTemplate.updateFirst(new Query(criteria), update, AttendanceMonth.class);
+                }
+        //Building the AttendanceRow, response for the frontend, so that it could be displayed in the UI
+        List<AttendanceRow> rows = new ArrayList<AttendanceRow>();
+        for(int d=1; d<=ym.lengthOfMonth(); d++)
+            {
+                LocalDate date = ym.atDay(d);
+                DayEntry entry = days.get(String.valueOf(d));
+                 if (entry != null) {                                  // stored entry wins (incl. future leaves)
+                rows.add(AttendanceRow.fromEntry(date, entry));
+                } else if (date.equals(today)) {                      // today, nothing stored yet
+                 rows.add(AttendanceRow.notLoggedInToday(date, typeFor(date, today)));
+              }  
+                else 
+                {
+                    rows.add(AttendanceRow.notLoggedInToday(date, typeFor(date, today)));
+                }
+            }
+            return rows;
+                                                       
+    }
+
+
 
     //---------------HELPER FUNCTIONS---------------------------//
     private AttendanceMonth getOrSetMonth(String userId, String monthKey)
@@ -149,9 +237,9 @@ public Optional<AttendanceMonth> getMonth(String userId, String monthKey)
             return exist.get();
         }
     
-            AttendanceMonth m = new AttendanceMonth();
-                m.setId(userId);
-                m.setMonth(monthKey);
+        AttendanceMonth m = new AttendanceMonth();
+        m.setUserId(userId);        // same as onClickLogin; leave the id to MongoDB
+        m.setMonth(monthKey);
                 m.setDays(new HashMap<>());
                 m.setSummary(new MonthSummary());
             //Here we ensure that after the new block is created then we return back the new object created
@@ -166,6 +254,14 @@ public Optional<AttendanceMonth> getMonth(String userId, String monthKey)
 
             }
             
+     }
+     private DayType typeFor(LocalDate d, LocalDate today)
+     {
+        DayOfWeek w = d.getDayOfWeek();
+        if(w == DayOfWeek.SATURDAY || w == DayOfWeek.SUNDAY) return DayType.WEEKEND;
+        if(d.isBefore(today))return DayType.ABSENT;
+        if(d.isAfter(today))return DayType.NOT_CLOCKED_IN; // default to not clocked in for future days
+        return DayType.NOT_CLOCKED_IN; // default to absent for past days without entries
      }
 }
     

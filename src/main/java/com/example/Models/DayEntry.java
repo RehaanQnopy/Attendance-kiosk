@@ -12,9 +12,12 @@ public class DayEntry {
     private ObjectId leaveId;
     private String leaveType;
 
-    public DayEntry() { }
+    public DayEntry() { } ;
 
-    //This method provides the 
+//---------Named Fatories = Named factories simply mean writing public static methods with descriptive names-------//
+
+    //This method provides the  
+    // DayEntry object with the inTime and type set to WORK, when the user clicks on the login button
     public static DayEntry workStartedAt(Instant inTime) {
         DayEntry entry = new DayEntry();
 
@@ -22,6 +25,15 @@ public class DayEntry {
         entry.setInTime(inTime);
         return entry;
     }
+    //This method is for setting the type for the days where user has no entry
+    //Very important to decalre it as static
+    public static DayEntry noUserEntry(DayType type) {
+        DayEntry e = new DayEntry();
+        e.setType(type);
+        return e;
+
+    }
+//-------------------Getters and Setters--------------------//
 
     public DayType getType() { return type; }
     //The below method is used at clockIn logic, to set the type of work {WORK, LEAVE}

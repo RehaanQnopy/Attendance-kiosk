@@ -1,5 +1,7 @@
 package com.example.Controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
 import com.example.Models.AttendanceMonth;
+import com.example.Models.AttendanceRow;
 import com.example.Services.AttendanceMonthService;
 
 @RestController 
@@ -48,5 +51,14 @@ public class AttendanceMarkerController {
         return attendanceMonthService.getMonth(userId, monthKey)
         .map((Response)-> ResponseEntity.status(HttpStatus.OK).body(Response))
         .orElseGet(()-> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    //This one is fro full attendance view for the user by user
+    @GetMapping("my-attendance/{monthKey}")
+    public ResponseEntity<List<AttendanceRow>> getMyAttendanceData(@SessionAttribute("userId") String userId, 
+    @PathVariable String monthKey)
+    {
+        return ResponseEntity.status(HttpStatus.OK).body(attendanceMonthService.particularMonthView(userId, monthKey));
+
     }
 }
