@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.SessionAttribute;
 
 import com.example.Models.AttendanceMonth;
 import com.example.Models.AttendanceRow;
+import com.example.Response.ApiResponse;
 import com.example.Services.AttendanceMonthService;
 
 @RestController 
@@ -55,10 +56,11 @@ public class AttendanceMarkerController {
 
     //This one is fro full attendance view for the user by user
     @GetMapping("my-attendance/{monthKey}")
-    public ResponseEntity<List<AttendanceRow>> getMyAttendanceData(@SessionAttribute("userId") String userId, 
+    public ResponseEntity<ApiResponse<List<AttendanceRow>>> getMyAttendanceData(@SessionAttribute("userId") String userId, 
     @PathVariable String monthKey)
     {
-        return ResponseEntity.status(HttpStatus.OK).body(attendanceMonthService.particularMonthView(userId, monthKey));
-
+        List<AttendanceRow> rows = attendanceMonthService.particularMonthView(userId, monthKey);
+        HttpStatus status = HttpStatus.OK;
+        return ResponseEntity.status(status).body(ApiResponse.response(status, "OK", rows));
     }
 }

@@ -222,8 +222,7 @@ public List<AttendanceRow> particularMonthView(String userId, String monthKey)
                     rows.add(AttendanceRow.notLoggedInToday(date, typeFor(date, today)));
                 }
             }
-            return rows;
-                                                       
+            return rows;                                               
     }
 
 
