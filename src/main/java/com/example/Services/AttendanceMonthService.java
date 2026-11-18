@@ -1,7 +1,6 @@
 package com.example.Services;
 
 import java.time.DayOfWeek;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -49,12 +48,13 @@ public class AttendanceMonthService {
 
     public Optional<AttendanceMonth> onClickLogin(String userId)
     {
-        Instant now = Instant.now();
+        Instant nowInstant = Instant.now();
+        Long now = Instant.now().toEpochMilli(); //13-digit timestamp stored in DB
 
         //YearMonth is a built-in java class that extracts Year and Month from the time stamp
-        String monthKey=YearMonth.from(now.atZone(IST)).toString(); //"2026-10"
+        String monthKey=YearMonth.from(nowInstant.atZone(IST)).toString(); //"2026-10"
         //.getDayOfMonth gives the current day date and String converts it into "22"
-        String dayKey=String.valueOf(now.atZone(IST).getDayOfMonth());
+        String dayKey=String.valueOf(nowInstant.atZone(IST).getDayOfMonth());
 
         AttendanceMonth ExistingMonth;
 
@@ -93,11 +93,12 @@ public class AttendanceMonthService {
 //--------------------------------------------------------------------------------------------------------------------------------------------//
     public Optional<AttendanceMonth> onCLickLogout(String userId)
     {
-        Instant now = Instant.now();
+        Instant nowInstant = Instant.now();
+        Long now = Instant.now().toEpochMilli(); // 13-digit timestamp fro database
         //YearMonth is a built-in java class that extracts Year and Month from the time stamp
-        String monthKey=YearMonth.from(now.atZone(IST)).toString(); //"2026-10"
+        String monthKey=YearMonth.from(nowInstant.atZone(IST)).toString(); //"2026-10"
         //.getDayOfMonth gives the current day date and String converts it into "22"
-        String dayKey=String.valueOf(now.atZone(IST).getDayOfMonth());
+        String dayKey=String.valueOf(nowInstant.atZone(IST).getDayOfMonth());
 
         AttendanceMonth ExistingMonth;
         Optional<AttendanceMonth> isLoginThereForThisDayAndMonth = attendanceRepo.findByUserIdAndMonth(userId, monthKey);
@@ -111,9 +112,11 @@ public class AttendanceMonthService {
         {
             //unwraps the AtttendanceMonth object from the Optional cover
             ExistingMonth = isLoginThereForThisDayAndMonth.get();
+
             //Here we extract the DayEntry object of today as onCLickLogin() would have created the 
             //todays object already
             DayEntry today = ExistingMonth.getDays().get(dayKey);
+
             if(today==null || today.getType()!=DayType.WORK)
             {
                 return Optional.empty();
@@ -125,7 +128,7 @@ public class AttendanceMonthService {
                 return Optional.empty();
             }
                 //We calculate the total duration of the user
-                int minute = (int)Duration.between(today.getInTime(), now).toMinutes();
+                int minute = (int)((now-today.getInTime())/60000);
                 today.setOutTime(now);
                 today.setTotalDurationMin(minute);
 

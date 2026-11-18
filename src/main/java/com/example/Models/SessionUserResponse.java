@@ -1,7 +1,7 @@
 package com.example.Models;
 import java.util.List;
 
-
+/* This interface is used by the AuthGurad of the FRontend to decide where to re-direct the user to which dashboard*/
 public class SessionUserResponse {
     private final String id;
     private final String name;

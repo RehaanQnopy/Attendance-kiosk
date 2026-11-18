@@ -12,7 +12,7 @@ public class ApiResponse<T>{
     private int status;
     private String message;
     private T data;
-    private Instant timeStamp = Instant.now();
+    private Long timeStamp = Instant.now().toEpochMilli();
     private boolean success;
 
     //Parameterized Constructor
@@ -33,6 +33,6 @@ public class ApiResponse<T>{
     public int getStatus() { return status; }
     public String getMessage() { return message; }
     public T getData() { return data; }
-    public Instant getTimestamp() { return timeStamp; }
+    public Long getTimestamp() { return timeStamp; }
     
 }
